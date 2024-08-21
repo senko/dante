@@ -1,0 +1,22 @@
+[project]
+name = "dante"
+version = "0.1.0"
+description = "Simple database for Python"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "aiosqlite>=0.20.0",
+    "pydantic>=2.8.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.6.1",
+    "pytest>=8.3.2",
+    "pytest-coverage>=0.0",
+    "pytest-asyncio>=0.23.8",
+]
