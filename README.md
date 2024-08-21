@@ -82,8 +82,7 @@ There's also a `DanteMixin` model mixin you can apply to your
 Pydantic models to enable ORM-like syntax on them:
 
 ```python
-
-from dante import Dante, DanteMmixin
+from dante import Dante, DanteMixin
 from pydantic import BaseModel
 
 class Message(DanteMixin, BaseModel):
@@ -122,27 +121,31 @@ Dante can also be used asynchronously with the identical API, both
 for plain Python objects and Pydantic models:
 
 ```python
+from asyncio import run
 from dante import AsyncDante
 
-db = AsyncDante("mydatabase.db")
-collection = await db["mycollection"]
+async def main():
+    db = AsyncDante("mydatabase.db")
+    collection = await db["mycollection"]
 
-data = {"name": "Dante", "text": "Hello World!"}
-await collection.insert(data)
+    data = {"name": "Dante", "text": "Hello World!"}
+    await collection.insert(data)
 
-result = await collection.find_one(name="Dante")
-print(result["text"])
+    result = await collection.find_one(name="Dante")
+    print(result["text"])
 
-new_data = {"name": "Virgil", "text": "Hello World!"}
-await collection.update_one(new_data, name="Dante")
+    new_data = {"name": "Virgil", "text": "Hello World!"}
+    await collection.update_one(new_data, name="Dante")
 
-await db.close()
+    await db.close()
+
+run(main())
 ```
 
 It also works in ORM-like mode:
 
 ```python
-
+from asyncio import run
 from dante import AsyncDanteMixin
 from pydantic import BaseModel
 
@@ -152,23 +155,26 @@ class Message(AsyncDanteMixin, BaseModel):
 
 AsyncDanteMixin.use_db("mydatabase.db")
 
-obj = Message(name="Dante", text="Hello world!")
-await obj.save()
+async def main():
+    obj = Message(name="Dante", text="Hello world!")
+    await obj.save()
 
-result = await Message.find_one(name="Dante")
-print(result.text)
+    result = await Message.find_one(name="Dante")
+    print(result.text)
 
-# Find a model in the collection with the attribute name=Dante
-# and update(overwrite) it with the latest model data
-obj.name = "Virgil"
-await obj.save(name="Dante")
+    # Find a model in the collection with the attribute name=Dante
+    # and update(overwrite) it with the latest model data
+    obj.name = "Virgil"
+    await obj.save(name="Dante")
 
-for message in await Message.find_many():
-    print(message.name, message.text)
+    for message in await Message.find_many():
+        print(message.name, message.text)
 
-# Contrary to sync mode, not closing the db explicitly would hang
-# the process at exit.
-await DanteMixin.close_db()
+    # Contrary to sync mode, not closing the db explicitly would hang
+    # the process at exit.
+    await AsyncDanteMixin.close_db()
+
+run(main())
 ```
 
 

@@ -108,7 +108,6 @@ class DanteMixin:
 
         if isinstance(db, str):
             db = Dante(db)
-        print("Using", db)
         cls._db = db
 
     @classmethod
