@@ -1,0 +1,56 @@
+name: Python package
+
+on:
+  push:
+    branches: [ "main", "ci" ]
+  pull_request:
+    branches: [ "main", "ci" ]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.12"]
+        os: [ubuntu-24.04, macos-latest, windows-latest]
+        exclude:
+          - os: windows-latest
+            python-version: 3.9
+          - os: macos-latest
+            python-version: 3.9
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up uv
+      if: ${{ matrix.os == 'ubuntu-24.04' || matrix.os == 'macos-latest' }}
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    - name: Set up uv
+      if: ${{ matrix.os == 'windows-latest' }}
+      run: irm https://astral.sh/uv/install.ps1 | iex
+      shell: powershell
+
+    - name: Install dependencies
+      run: uv sync --extra=dev
+
+    - name: Lint with ruff
+      run: uv run ruff check --output-format github
+
+    - name: Check code style with ruff
+      run: uv run ruff format --check --diff
+
+    - name: Test with pytest
+      run: uv run pytest
+      timeout-minutes: 5
+
+    - name: Build package
+      run: uvx --from build pyproject-build --installer uv
