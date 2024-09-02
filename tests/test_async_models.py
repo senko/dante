@@ -1,16 +1,10 @@
 import pytest
 from pydantic import BaseModel
 
-from dante import AsyncDanteMixin
-
 
 class MyModel(BaseModel):
     a: int
     b: str = "foo"
-
-
-class MyDanteModel(AsyncDanteMixin, MyModel):
-    pass
 
 
 @pytest.mark.asyncio
@@ -64,62 +58,3 @@ async def test_update_model(db):
 
     assert result.a == 1
     assert result.b == "bar"
-
-
-@pytest.mark.asyncio
-async def test_dante_mixin(db):
-    """
-    Test all behavior of async DanteMixin
-
-    This is all in one big test to avoid concurrency
-    issue stemming from overriding a singleton connection
-    (within DanteMixin) with a fresh connection for each test.
-    """
-    AsyncDanteMixin.use_db(db)
-
-    # Test object creation and single object retrieval
-    obj = MyDanteModel(a=1)
-    await obj.save()
-
-    result = await MyDanteModel.find_one(a=1)
-    assert isinstance(result, MyDanteModel)
-
-    await MyDanteModel.clear()
-
-    # Test object update and multiple object retrieval
-    obj = MyDanteModel(a=1)
-    await obj.save()
-
-    obj.b = "bar"
-    await obj.save(a=1)
-
-    results = await MyDanteModel.find_many(a=1)
-    assert len(results) == 1
-    assert isinstance(results[0], MyDanteModel)
-
-    assert results[0].a == 1
-    assert results[0].b == "bar"
-
-    await MyDanteModel.clear()
-
-    # Test object deletion (single & many)
-    obj = MyDanteModel(a=1)
-    await obj.save()
-
-    await obj.delete()
-
-    result = await MyDanteModel.find_many()
-    assert result == []
-
-    await MyDanteModel.clear()
-
-    obj = MyDanteModel(a=1, b="foo")
-    await obj.save()
-
-    obj = MyDanteModel(a=1, b="bar")
-    await obj.save()
-
-    await MyDanteModel.delete_many(a=1)
-
-    result = await MyDanteModel.find_many()
-    assert result == []

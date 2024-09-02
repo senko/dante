@@ -78,43 +78,6 @@ result.name = "Virgil"
 collection.update_one(result, name="Dante")
 ```
 
-There's also a `DanteMixin` model mixin you can apply to your
-Pydantic models to enable ORM-like syntax on them:
-
-```python
-from dante import Dante, DanteMixin
-from pydantic import BaseModel
-
-class Message(DanteMixin, BaseModel):
-    name: str
-    text: str
-
-# Open the database
-DanteMixin.use_db("mydatabase.db")
-
-# Create a new Message model to the database
-obj = Message(name="Dante", text="Hello world!")
-obj.save()
-
-# Find a model with the specieied attribute(s)
-result = Message.find_one(name="Dante")
-print(result.text)
-
-# Find a model in the collection with the attribute name=Dante
-# and update(overwrite) it with the latest model data
-obj.name = "Virgil"
-obj.save(name="Dante")
-
-for message in Message.find_many():
-    print(message.name, message.text)
-```
-
-Note that even with ORM-like syntax, Dante has no concept of
-IDs or keys. In the example above, we have to update the existing
-object in the database by telling Dante how to find the old object with
-`obj.save(namme="Dante")`. Without it, Dante would create a new copy
-of the object.
-
 ## Aync Dante
 
 Dante can also be used asynchronously with the identical API, both
@@ -141,42 +104,6 @@ async def main():
 
 run(main())
 ```
-
-It also works in ORM-like mode:
-
-```python
-from asyncio import run
-from dante import AsyncDanteMixin
-from pydantic import BaseModel
-
-class Message(AsyncDanteMixin, BaseModel):
-    name: str
-    text: str
-
-AsyncDanteMixin.use_db("mydatabase.db")
-
-async def main():
-    obj = Message(name="Dante", text="Hello world!")
-    await obj.save()
-
-    result = await Message.find_one(name="Dante")
-    print(result.text)
-
-    # Find a model in the collection with the attribute name=Dante
-    # and update(overwrite) it with the latest model data
-    obj.name = "Virgil"
-    await obj.save(name="Dante")
-
-    for message in await Message.find_many():
-        print(message.name, message.text)
-
-    # Contrary to sync mode, not closing the db explicitly would hang
-    # the process at exit.
-    await AsyncDanteMixin.close_db()
-
-run(main())
-```
-
 
 ## Tests
 

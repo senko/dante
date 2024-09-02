@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import json
 import sqlite3
-from typing import Iterable, TypeVar
+from typing import Iterable
 
 from pydantic import BaseModel
 
@@ -92,58 +91,3 @@ class Collection(BaseCollection):
 
     def __iter__(self) -> Iterable[dict | BaseModel]:
         return iter(self.find_many())
-
-
-DanteModel = TypeVar("DanteModel", bound="DanteMixin")
-
-
-class DanteMixin:
-    @classmethod
-    def use_db(cls: DanteModel, db: str | Dante = Dante.MEMORY):
-        if hasattr(cls, "_db"):
-            return
-
-        if isinstance(db, str):
-            db = Dante(db)
-        cls._db = db
-
-    @classmethod
-    def close_db(cls: DanteModel):
-        if hasattr(cls, "_db"):
-            cls._db.close()
-            del cls._db
-
-    @classmethod
-    def _get_collection(cls):
-        coll = getattr(cls, "_collection", None)
-        if coll:
-            return coll
-        coll = cls._db[cls]
-        cls._collection = coll
-        return coll
-
-    @classmethod
-    def find_many(cls: DanteModel, **kwargs) -> list[DanteModel]:
-        return cls._get_collection().find_many(**kwargs)
-
-    @classmethod
-    def find_one(cls: DanteModel, **kwargs) -> DanteModel | None:
-        return cls._get_collection().find_one(**kwargs)
-
-    def save(self, **kwargs):
-        if kwargs:
-            self._get_collection().update_one(self, **kwargs)
-        else:
-            self._get_collection().insert(self)
-
-    def delete(self):
-        data = json.loads(self.model_dump_json())
-        self._get_collection().delete_one(**data)
-
-    @classmethod
-    def delete_many(self, **kwargs):
-        self._get_collection().delete_many(**kwargs)
-
-    @classmethod
-    def clear(cls: DanteModel):
-        cls._get_collection().clear()

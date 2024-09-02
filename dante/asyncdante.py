@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import json
-from typing import Iterable, TypeVar
+from typing import Iterable
 
 import aiosqlite
 from pydantic import BaseModel
@@ -97,64 +96,3 @@ class Collection(BaseCollection):
 
     def __aiter__(self) -> Iterable[dict | BaseModel]:
         return iter(self.find_many())
-
-
-DanteModel = TypeVar("DanteModel", bound="DanteMixin")
-
-
-class DanteMixin:
-    @classmethod
-    def use_db(cls: DanteModel, db: str | Dante = Dante.MEMORY):
-        if hasattr(cls, "_db"):
-            return
-
-        if isinstance(db, str):
-            db = Dante(db)
-        cls._db = db
-
-    @classmethod
-    async def close_db(cls: DanteModel):
-        if hasattr(cls, "_db"):
-            await cls._db.close()
-            del cls._db
-
-    @classmethod
-    async def _get_collection(cls):
-        coll = getattr(cls, "_collection", None)
-        if coll:
-            return coll
-        coll = await cls._db.collection(cls.__name__, cls)
-        cls._collection = coll
-        return coll
-
-    @classmethod
-    async def find_many(cls: DanteModel, **kwargs) -> list[DanteModel]:
-        coll = await cls._get_collection()
-        return await coll.find_many(**kwargs)
-
-    @classmethod
-    async def find_one(cls: DanteModel, **kwargs) -> DanteModel | None:
-        coll = await cls._get_collection()
-        return await coll.find_one(**kwargs)
-
-    async def save(self, **kwargs):
-        coll = await self._get_collection()
-        if kwargs:
-            await coll.update_one(self, **kwargs)
-        else:
-            await coll.insert(self)
-
-    async def delete(self):
-        coll = await self._get_collection()
-        data = json.loads(self.model_dump_json())
-        await coll.delete_one(**data)
-
-    @classmethod
-    async def delete_many(self, **kwargs):
-        coll = await self._get_collection()
-        await coll.delete_many(**kwargs)
-
-    @classmethod
-    async def clear(cls: DanteModel):
-        coll = await cls._get_collection()
-        await coll.clear()

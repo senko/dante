@@ -1,10 +1,4 @@
 from .asyncdante import Dante as AsyncDante
-from .asyncdante import DanteMixin as AsyncDanteMixin
-from .sync import Dante, DanteMixin
+from .sync import Dante
 
-__all__ = [
-    "Dante",
-    "DanteMixin",
-    "AsyncDante",
-    "AsyncDanteMixin",
-]
+__all__ = ["Dante", "AsyncDante"]

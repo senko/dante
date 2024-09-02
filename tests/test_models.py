@@ -1,15 +1,11 @@
 from pydantic import BaseModel
 
-from dante import Dante, DanteMixin
+from dante import Dante
 
 
 class MyModel(BaseModel):
     a: int
     b: str = "foo"
-
-
-class MyDanteModel(DanteMixin, MyModel):
-    pass
 
 
 def test_get_model_collection():
@@ -63,61 +59,3 @@ def test_update_model():
 
     assert result.a == 1
     assert result.b == "bar"
-
-
-def test_dante_model_insert():
-    DanteMixin.use_db()
-    MyDanteModel.clear()
-
-    obj = MyDanteModel(a=1)
-    obj.save()
-
-    result = MyDanteModel.find_one(a=1)
-    assert isinstance(result, MyDanteModel)
-
-
-def test_dante_model_update():
-    DanteMixin.use_db()
-    MyDanteModel.clear()
-
-    obj = MyDanteModel(a=1)
-    obj.save()
-
-    obj.b = "bar"
-    obj.save(a=1)
-
-    results = MyDanteModel.find_many(a=1)
-    assert len(results) == 1
-    assert isinstance(results[0], MyDanteModel)
-
-    assert results[0].a == 1
-    assert results[0].b == "bar"
-
-
-def test_dante_model_delete():
-    DanteMixin.use_db()
-    MyDanteModel.clear()
-
-    obj = MyDanteModel(a=1)
-    obj.save()
-
-    obj.delete()
-
-    result = MyDanteModel.find_many()
-    assert result == []
-
-
-def test_dante_model_delete_many():
-    DanteMixin.use_db()
-    MyDanteModel.clear()
-
-    obj = MyDanteModel(a=1, b="foo")
-    obj.save()
-
-    obj = MyDanteModel(a=1, b="bar")
-    obj.save()
-
-    MyDanteModel.delete_many(a=1)
-
-    result = MyDanteModel.find_many()
-    assert result == []
