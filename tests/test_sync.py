@@ -1,6 +1,8 @@
 from datetime import datetime
 from time import time
 
+import pytest
+
 from dante.sync import Dante
 
 
@@ -9,6 +11,7 @@ def test_create_dante_on_disk(tmp_path):
     db = Dante(db_path)
     assert db is not None
     _ = db["test"]
+    db.close()
     assert db_path.exists()
 
 
@@ -44,6 +47,17 @@ def test_insert_find_many():
     coll.insert(obj2)
     result = coll.find_many(a=1)
     assert len(result) == 2
+
+
+def test_iteration():
+    db = Dante()
+    coll = db["test"]
+
+    coll.insert({"a": 1, "b": 2, "c": 3})
+
+    result = [d for d in coll]
+    assert len(result) == 1
+    assert result[0]["a"] == 1
 
 
 def test_insert_datetime():
@@ -84,6 +98,13 @@ def test_update_many():
     assert result["b"] == 3
 
 
+def test_update_without_filter_fails():
+    db = Dante()
+    coll = db["test"]
+    with pytest.raises(ValueError):
+        coll.update_many({})
+
+
 def test_delete_one():
     db = Dante()
     coll = db["test"]
@@ -103,6 +124,15 @@ def test_delete_many():
     coll.delete_many(a=1)
     result = coll.find_many(a=1)
     assert result == []
+
+
+def test_delete_without_filter_fails():
+    db = Dante()
+    coll = db["test"]
+    with pytest.raises(ValueError):
+        coll.delete_many()
+    with pytest.raises(ValueError):
+        coll.delete_one()
 
 
 def test_clear():

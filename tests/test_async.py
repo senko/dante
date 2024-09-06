@@ -73,6 +73,20 @@ async def test_find_none(db):
 
 
 @pytest.mark.asyncio
+async def test_iteration(db):
+    coll = await db["test"]
+
+    await coll.insert({"a": 1})
+
+    count = 0
+    async for data in coll:
+        count += 1
+        assert data["a"] == 1
+
+    assert count == 1
+
+
+@pytest.mark.asyncio
 async def test_update_one(db):
     coll = await db["test"]
 
@@ -90,6 +104,15 @@ async def test_update_many(db):
     await coll.update_many({"a": 1, "b": 3}, a=1)
     result = await coll.find_one(a=1)
     assert result["b"] == 3
+
+
+@pytest.mark.asyncio
+async def test_update_without_filter_fails(db):
+    coll = await db["test"]
+
+    await coll.insert({"a": 1, "b": 2})
+    with pytest.raises(ValueError):
+        await coll.update_many({})
 
 
 @pytest.mark.asyncio
@@ -113,6 +136,17 @@ async def test_delete_many(db):
     await coll.delete_many(a=1)
     result = await coll.find_many(a=1)
     assert result == []
+
+
+@pytest.mark.asyncio
+async def test_delete_without_filter_fails(db):
+    coll = await db["test"]
+
+    with pytest.raises(ValueError):
+        await coll.delete_one()
+
+    with pytest.raises(ValueError):
+        await coll.delete_many()
 
 
 @pytest.mark.asyncio

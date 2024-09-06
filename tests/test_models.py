@@ -1,3 +1,4 @@
+import pytest
 from pydantic import BaseModel
 
 from dante import Dante
@@ -59,3 +60,21 @@ def test_update_model():
 
     assert result.a == 1
     assert result.b == "bar"
+
+
+def test_update_without_filter_fails():
+    db = Dante()
+    coll = db[MyModel]
+
+    obj = MyModel(a=1)
+
+    with pytest.raises(ValueError):
+        coll.update_many(obj)
+
+
+def test_delete_without_filter_fails():
+    db = Dante()
+    coll = db[MyModel]
+
+    with pytest.raises(ValueError):
+        coll.delete_many()

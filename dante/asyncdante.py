@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
+from typing import AsyncGenerator
 
 import aiosqlite
 from pydantic import BaseModel
@@ -94,5 +94,7 @@ class Collection(BaseCollection):
         await conn.execute(f"DELETE FROM {self.name}")
         await self.db._maybe_commit()
 
-    def __aiter__(self) -> Iterable[dict | BaseModel]:
-        return iter(self.find_many())
+    async def __aiter__(self) -> AsyncGenerator[dict | BaseModel]:
+        results = await self.find_many()
+        for r in results:
+            yield r
