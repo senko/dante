@@ -53,7 +53,7 @@ def test_update_model():
     coll.insert(obj)
 
     obj.b = "bar"
-    coll.update_many(obj, a=1)
+    coll.update(obj, a=1)
 
     result = coll.find_one(a=1)
     assert isinstance(result, MyModel)
@@ -69,7 +69,7 @@ def test_update_without_filter_fails():
     obj = MyModel(a=1)
 
     with pytest.raises(ValueError):
-        coll.update_many(obj)
+        coll.update(obj)
 
 
 def test_delete_without_filter_fails():
@@ -77,4 +77,4 @@ def test_delete_without_filter_fails():
     coll = db[MyModel]
 
     with pytest.raises(ValueError):
-        coll.delete_many()
+        coll.delete()

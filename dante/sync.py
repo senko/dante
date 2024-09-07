@@ -89,7 +89,7 @@ class Collection(BaseCollection):
         results = _self.find_many(1, **kwargs)
         return results[0] if len(results) > 0 else None
 
-    def update_many(
+    def update(
         _self,
         _data: dict | BaseModel,
         _limit: int | None = None,
@@ -108,10 +108,7 @@ class Collection(BaseCollection):
         )
         _self.db._maybe_commit()
 
-    def update_one(_self, _data: dict | BaseModel, /, **kwargs: Any):
-        _self.update_many(_data, 1, **kwargs)
-
-    def delete_many(_self, _limit: int | None = None, /, **kwargs: Any):
+    def delete(_self, _limit: int | None = None, /, **kwargs: Any):
         if not kwargs:
             raise ValueError("You must provide a filter to delete")
 
@@ -120,9 +117,6 @@ class Collection(BaseCollection):
         cursor = _self.conn.cursor()
         cursor.execute(f"DELETE FROM {_self.name}{query}", values)
         _self.db._maybe_commit()
-
-    def delete_one(_self, /, **kwargs: Any):
-        _self.delete_many(1, **kwargs)
 
     def clear(self):
         cursor = self.conn.cursor()

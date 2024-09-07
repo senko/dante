@@ -184,7 +184,8 @@ class BaseCollection(ABC):
             query = ""
 
         if _limit:
-            query += f" LIMIT {_limit}"
+            query += " LIMIT ?"
+            values.append(_limit)
 
         return query, values
 
@@ -224,7 +225,7 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def update_many(
+    def update(
         _self,
         _data: dict | BaseModel,
         _limit: int | None = None,
@@ -242,31 +243,12 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def update_one(_self, _data: dict | BaseModel, /, **kwargs: Any):
-        """
-        Update one document matching the query.
-
-        Note that the data must be a full object, not just the fields to update.
-
-        :param _data: Data to update with (must be a full object)
-        :param kwargs: Fields to match in the document
-        """
-
-    @abstractmethod
-    def delete_many(_self, _limit: int | None = None, /, **kwargs: Any):
+    def delete(_self, _limit: int | None = None, /, **kwargs: Any):
         """
         Delete documents matching the query.
 
         :param _limit: Maximum number of documents to delete (default is no limit)
         :param kwargs: Fields to match in the documents
-        """
-
-    @abstractmethod
-    def delete_one(_self, /, **kwargs: Any):
-        """
-        Delete one document matching the query.
-
-        :param kwargs: Fields to match in the document
         """
 
     @abstractmethod

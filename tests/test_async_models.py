@@ -51,7 +51,7 @@ async def test_update_model(db):
     await coll.insert(obj)
 
     obj.b = "bar"
-    await coll.update_many(obj, a=1)
+    await coll.update(obj, a=1)
 
     result = await coll.find_one(a=1)
     assert isinstance(result, MyModel)

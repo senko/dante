@@ -43,7 +43,7 @@ another database or ORM engine.
     print(result["text"])
 
     new_data = {"name": "Virgil", "text": "Hello World!"}
-    collection.update_one(new_data, name="Dante")
+    collection.update(new_data, name="Dante")
     ```
 
 Under the hood, Dante stores each dictionary in a JSON-encoded TEXT column
@@ -79,7 +79,7 @@ print(result.text)
 # Find a model in the collection with the attribute name=Dante
 # and update (overwrite) it with the new model data
 result.name = "Virgil"
-collection.update_one(result, name="Dante")
+collection.update(result, name="Dante")
 ```
 
 ## Aync Dante
@@ -102,7 +102,7 @@ async def main():
     print(result["text"])
 
     new_data = {"name": "Virgil", "text": "Hello World!"}
-    await collection.update_one(new_data, name="Dante")
+    await collection.update(new_data, name="Dante")
 
     await db.close()
 

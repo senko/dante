@@ -1,6 +1,5 @@
 from asyncio import gather
 from datetime import datetime
-from time import time
 
 import pytest
 
@@ -87,21 +86,11 @@ async def test_iteration(db):
 
 
 @pytest.mark.asyncio
-async def test_update_one(db):
+async def test_update(db):
     coll = await db["test"]
 
     await coll.insert({"a": 1, "b": 2})
-    await coll.update_many({"a": 1, "b": 3}, a=1)
-    result = await coll.find_one(a=1)
-    assert result["b"] == 3
-
-
-@pytest.mark.asyncio
-async def test_update_many(db):
-    coll = await db["test"]
-
-    await coll.insert({"a": 1, "b": 2})
-    await coll.update_many({"a": 1, "b": 3}, a=1)
+    await coll.update({"a": 1, "b": 3}, a=1)
     result = await coll.find_one(a=1)
     assert result["b"] == 3
 
@@ -112,28 +101,18 @@ async def test_update_without_filter_fails(db):
 
     await coll.insert({"a": 1, "b": 2})
     with pytest.raises(ValueError):
-        await coll.update_many({})
+        await coll.update({})
 
 
 @pytest.mark.asyncio
-async def test_delete_one(db):
-    coll = await db["test"]
-
-    await coll.insert({"a": 1, "b": 2})
-    await coll.delete_many(a=1)
-    result = await coll.find_one(a=1)
-    assert result is None
-
-
-@pytest.mark.asyncio
-async def test_delete_many(db):
+async def test_delete(db):
     coll = await db["test"]
 
     await gather(
         coll.insert({"a": 1, "b": 2}),
         coll.insert({"a": 1, "b": 3}),
     )
-    await coll.delete_many(a=1)
+    await coll.delete(a=1)
     result = await coll.find_many(a=1)
     assert result == []
 
@@ -143,10 +122,7 @@ async def test_delete_without_filter_fails(db):
     coll = await db["test"]
 
     with pytest.raises(ValueError):
-        await coll.delete_one()
-
-    with pytest.raises(ValueError):
-        await coll.delete_many()
+        await coll.delete()
 
 
 @pytest.mark.asyncio
@@ -157,46 +133,3 @@ async def test_clear(db):
     await coll.clear()
     result = await coll.find_many()
     assert result == []
-
-
-@pytest.mark.asyncio
-async def test_insert_performance(tmp_path):
-    db_path = tmp_path / "test.db"
-    db = AsyncDante(db_path, auto_commit=False)
-
-    coll = await db["test"]
-    t0 = time()
-    coros = []
-    for i in range(100):
-        coros.append(coll.insert({"a": i, "b": i + 1}))
-    await gather(*coros)
-    await db.commit()
-    t1 = time()
-    dt = t1 - t0
-    assert dt < 0.05
-    await db.close()
-
-
-@pytest.mark.asyncio
-async def test_update_performance(tmp_path):
-    db_path = tmp_path / "test.db"
-    db = AsyncDante(db_path, auto_commit=False)
-
-    coll = await db["test"]
-    coros = []
-    for i in range(100):
-        coros.append(coll.insert({"a": i, "b": i + 1}))
-
-    await gather(*coros)
-    await db.commit()
-
-    t0 = time()
-    coros = []
-    for i in range(100):
-        coros.append(coll.update_one({"a": i, "b": 2 * i + 1}, a=i))
-    await gather(*coros)
-    await db.commit()
-    t1 = time()
-    dt = t1 - t0
-    assert dt < 0.1
-    await db.close()

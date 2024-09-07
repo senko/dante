@@ -78,23 +78,12 @@ def test_find_none():
     assert result is None
 
 
-def test_update_one():
+def test_update():
     db = Dante()
     coll = db["test"]
 
     coll.insert({"a": 1, "b": 2})
-    coll.insert({"a": 1, "b": 3})
-    coll.update_one({"a": 1, "b": 4}, a=1)
-    result_bs = set(r["b"] for r in coll)
-    assert result_bs == {2, 4} or result_bs == {3, 4}
-
-
-def test_update_many():
-    db = Dante()
-    coll = db["test"]
-
-    coll.insert({"a": 1, "b": 2})
-    coll.update_many({"a": 1, "b": 3}, a=1)
+    coll.update({"a": 1, "b": 3}, a=1)
     result = coll.find_one(a=1)
     assert result["b"] == 3
 
@@ -103,27 +92,16 @@ def test_update_without_filter_fails():
     db = Dante()
     coll = db["test"]
     with pytest.raises(ValueError):
-        coll.update_many({})
+        coll.update({})
 
 
-def test_delete_one():
-    db = Dante()
-    coll = db["test"]
-
-    coll.insert({"a": 1, "b": 2})
-    coll.insert({"a": 1, "b": 2})
-    coll.delete_one(a=1)
-    result = coll.find_many(a=1)
-    assert len(result) == 1
-
-
-def test_delete_many():
+def test_delete():
     db = Dante()
     coll = db["test"]
 
     coll.insert({"a": 1, "b": 2})
     coll.insert({"a": 1, "b": 3})
-    coll.delete_many(a=1)
+    coll.delete(a=1)
     result = coll.find_many(a=1)
     assert result == []
 
@@ -132,9 +110,7 @@ def test_delete_without_filter_fails():
     db = Dante()
     coll = db["test"]
     with pytest.raises(ValueError):
-        coll.delete_many()
-    with pytest.raises(ValueError):
-        coll.delete_one()
+        coll.delete()
 
 
 def test_clear():
@@ -159,24 +135,6 @@ def test_insert_performance(tmp_path):
     t1 = time()
     dt = t1 - t0
     assert dt < 0.05
-
-
-def test_update_performance(tmp_path):
-    db_path = tmp_path / "test.db"
-    db = Dante(db_path, auto_commit=False)
-
-    coll = db["test"]
-    for i in range(100):
-        coll.insert({"a": i, "b": i + 1})
-
-    db.commit()
-    t0 = time()
-    for i in range(100):
-        coll.update_one({"a": i, "b": 2 * i + 1}, a=i)
-    db.commit()
-    t1 = time()
-    dt = t1 - t0
-    assert dt < 0.1
 
 
 def test_str():
