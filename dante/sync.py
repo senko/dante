@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
-from typing import Iterable
+from typing import Any, Iterable
 
 from pydantic import BaseModel
 
@@ -9,7 +9,25 @@ from .base import BaseCollection, BaseDante
 
 
 class Dante(BaseDante):
-    def get_connection(self):
+    """
+    Dante, a simple synchronous database wrapper for SQLite.
+
+    :param db_name: Name of the database, defaults to in-memory database
+    :param auto_commit: Whether to automatically commit transactions, defaults to True
+
+    Usage:
+
+    >>> from dante import Dante
+    >>> db = Dante()
+    >>> coll = db.collection("test")
+    >>> coll.insert({"person": "Jane", "message": "Hello World!"})
+    >>> result = coll.find_one(person="Jane")
+    >>> result["message"] = "Goodbye World!"
+    >>> coll.update_one(result, person="Jane")
+    >>> coll.delete_one(person="Jane")
+    """
+
+    def get_connection(self) -> sqlite3.Connection:
         if not self.conn:
             self.conn = sqlite3.connect(self.db_name)
         return self.conn
@@ -35,6 +53,17 @@ class Dante(BaseDante):
 
 
 class Collection(BaseCollection):
+    """
+    Synchronous Dante collection.
+
+    If the pydantic model class is specified, the data is automatically
+    serialized/deserialized.
+
+    :param name: Name of the collection
+    :param db: Dante instance
+    :param model: Pydantic model class (if using with Pydantic)
+    """
+
     def insert(self, data: dict | BaseModel):
         cursor = self.conn.cursor()
         cursor.execute(
@@ -42,7 +71,12 @@ class Collection(BaseCollection):
         )
         self.db._maybe_commit()
 
-    def find_many(_self, _limit=None, /, **kwargs) -> list[dict | BaseModel]:
+    def find_many(
+        _self,
+        _limit: int | None = None,
+        /,
+        **kwargs: Any,
+    ) -> list[dict | BaseModel]:
         query, values = _self._build_query(_limit, **kwargs)
 
         cursor = _self.conn.cursor()
@@ -51,11 +85,17 @@ class Collection(BaseCollection):
 
         return [_self._from_json(row[0]) for row in rows]
 
-    def find_one(_self, **kwargs) -> dict | BaseModel | None:
+    def find_one(_self, **kwargs: Any) -> dict | BaseModel | None:
         results = _self.find_many(1, **kwargs)
         return results[0] if len(results) > 0 else None
 
-    def update_many(_self, _data: dict | BaseModel, _limit=None, /, **kwargs):
+    def update_many(
+        _self,
+        _data: dict | BaseModel,
+        _limit: int | None = None,
+        /,
+        **kwargs: Any,
+    ):
         if not kwargs:
             raise ValueError("You must provide a filter to update")
 
@@ -68,10 +108,10 @@ class Collection(BaseCollection):
         )
         _self.db._maybe_commit()
 
-    def update_one(_self, _data: dict | BaseModel, /, **kwargs):
-        _self.update_many(_data, None, **kwargs)
+    def update_one(_self, _data: dict | BaseModel, /, **kwargs: Any):
+        _self.update_many(_data, 1, **kwargs)
 
-    def delete_many(_self, _limit=None, /, **kwargs):
+    def delete_many(_self, _limit: int | None = None, /, **kwargs: Any):
         if not kwargs:
             raise ValueError("You must provide a filter to delete")
 
@@ -81,8 +121,8 @@ class Collection(BaseCollection):
         cursor.execute(f"DELETE FROM {_self.name}{query}", values)
         _self.db._maybe_commit()
 
-    def delete_one(_self, /, **kwargs):
-        _self.delete_many(None, **kwargs)
+    def delete_one(_self, /, **kwargs: Any):
+        _self.delete_many(1, **kwargs)
 
     def clear(self):
         cursor = self.conn.cursor()
@@ -90,4 +130,7 @@ class Collection(BaseCollection):
         self.db._maybe_commit()
 
     def __iter__(self) -> Iterable[dict | BaseModel]:
+        """
+        Iterate over the documents in the collection.
+        """
         return iter(self.find_many())

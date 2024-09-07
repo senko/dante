@@ -49,7 +49,7 @@ jobs:
       run: uv run ruff format --check --diff
 
     - name: Test with pytest
-      run: uv run pytest
+      run: uv run pytest --cov=dante
       timeout-minutes: 5
 
     - name: Build package

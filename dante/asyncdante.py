@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 import aiosqlite
 from pydantic import BaseModel
@@ -39,6 +39,17 @@ class Dante(BaseDante):
 
 
 class Collection(BaseCollection):
+    """
+    Asynchronous Dante collection.
+
+    If the pydantic model class is specified, the data is automatically
+    serialized/deserialized.
+
+    :param name: Name of the collection
+    :param db: Dante instance
+    :param model: Pydantic model class (if using with Pydantic)
+    """
+
     async def insert(self, data: dict | BaseModel):
         conn: aiosqlite.Connection = await self.db.get_connection()
         await conn.execute(
@@ -46,7 +57,12 @@ class Collection(BaseCollection):
         )
         await self.db._maybe_commit()
 
-    async def find_many(_self, _limit=None, /, **kwargs) -> list[dict | BaseModel]:
+    async def find_many(
+        _self,
+        _limit: int | None = None,
+        /,
+        **kwargs: Any,
+    ) -> list[dict | BaseModel]:
         query, values = _self._build_query(_limit, **kwargs)
 
         conn: aiosqlite.Connection = await _self.db.get_connection()
@@ -56,11 +72,17 @@ class Collection(BaseCollection):
 
         return [_self._from_json(row[0]) for row in rows]
 
-    async def find_one(_self, **kwargs) -> dict | BaseModel | None:
+    async def find_one(_self, **kwargs: Any) -> dict | BaseModel | None:
         results = await _self.find_many(1, **kwargs)
         return results[0] if len(results) > 0 else None
 
-    async def update_many(_self, _data: dict | BaseModel, _limit=None, /, **kwargs):
+    async def update_many(
+        _self,
+        _data: dict | BaseModel,
+        _limit: int | None = None,
+        /,
+        **kwargs: Any,
+    ):
         if not kwargs:
             raise ValueError("You must provide a filter to update")
 
@@ -73,10 +95,10 @@ class Collection(BaseCollection):
         )
         await _self.db._maybe_commit()
 
-    async def update_one(_self, _data: dict | BaseModel, /, **kwargs):
+    async def update_one(_self, _data: dict | BaseModel, /, **kwargs: Any):
         await _self.update_many(_data, None, **kwargs)
 
-    async def delete_many(_self, _limit=None, /, **kwargs):
+    async def delete_many(_self, _limit: int | None = None, /, **kwargs: Any):
         if not kwargs:
             raise ValueError("You must provide a filter to delete")
 
@@ -86,7 +108,7 @@ class Collection(BaseCollection):
         await conn.execute(f"DELETE FROM {_self.name}{query}", values)
         await _self.db._maybe_commit()
 
-    async def delete_one(_self, /, **kwargs):
+    async def delete_one(_self, /, **kwargs: Any):
         await _self.delete_many(None, **kwargs)
 
     async def clear(self):
@@ -95,6 +117,9 @@ class Collection(BaseCollection):
         await self.db._maybe_commit()
 
     async def __aiter__(self) -> AsyncGenerator[dict | BaseModel]:
+        """
+        Asynchronously iterate over the documents in the collection.
+        """
         results = await self.find_many()
         for r in results:
             yield r

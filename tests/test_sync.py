@@ -83,9 +83,10 @@ def test_update_one():
     coll = db["test"]
 
     coll.insert({"a": 1, "b": 2})
-    coll.update_many({"a": 1, "b": 3}, a=1)
-    result = coll.find_one(a=1)
-    assert result["b"] == 3
+    coll.insert({"a": 1, "b": 3})
+    coll.update_one({"a": 1, "b": 4}, a=1)
+    result_bs = set(r["b"] for r in coll)
+    assert result_bs == {2, 4} or result_bs == {3, 4}
 
 
 def test_update_many():
@@ -110,9 +111,10 @@ def test_delete_one():
     coll = db["test"]
 
     coll.insert({"a": 1, "b": 2})
-    coll.delete_many(a=1)
-    result = coll.find_one(a=1)
-    assert result is None
+    coll.insert({"a": 1, "b": 2})
+    coll.delete_one(a=1)
+    result = coll.find_many(a=1)
+    assert len(result) == 1
 
 
 def test_delete_many():
@@ -175,3 +177,10 @@ def test_update_performance(tmp_path):
     t1 = time()
     dt = t1 - t0
     assert dt < 0.1
+
+
+def test_str():
+    d = Dante()
+    assert str(d) == '<Dante(":memory:")>'
+    c = d["test"]
+    assert str(c) == '<Collection(":memory:/test")>'

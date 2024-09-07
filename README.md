@@ -1,7 +1,11 @@
-# Dante, a simple database for Python
+# Dante, a document store for Python backed by SQLite
 
-Dante is a simple, easy to use NoSQL database for Python, ideal for
-exploratory programming, prototyping, and small, simple projects.
+[![Build](https://github.com/senko/dante/actions/workflows/ci.yml/badge.svg)](https://github.com/senko/dante/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/dante-db)](https://pypi.org/project/dante-db/)
+
+Dante is zero-setup, easy to use document store (NoSQL database) for Python.
+It's ideal for exploratory programming, prototyping, internal tools and
+small, simple projects.
 
 Dante can store Python dictionaries or Pydantic models, supports both
 sync and async mode, and is based on SQLite.
@@ -47,7 +51,7 @@ in a table (one per collection) in the SQLite database.
 
 ## Use with Pydantic
 
-Dante also works well with Pydantic.
+Dante works great with Pydantic.
 
 Using the same API as with the plain Python objects, you can insert,
 query and delete Pydantic models:
@@ -80,8 +84,8 @@ collection.update_one(result, name="Dante")
 
 ## Aync Dante
 
-Dante can also be used asynchronously with the identical API, both
-for plain Python objects and Pydantic models:
+Dante supports async usage with the identical API, both for plain Python
+objects and Pydantic models:
 
 ```python
 from asyncio import run
@@ -107,10 +111,10 @@ run(main())
 
 ## Tests
 
-Run the tests with pytest:
+Run the tests with `pytest`:
 
-```
-pytest --cov=dante
+```shell
+pytest
 ```
 
 ## License (MIT)
