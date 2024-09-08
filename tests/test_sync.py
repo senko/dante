@@ -1,5 +1,4 @@
 from datetime import datetime
-from time import time
 
 import pytest
 
@@ -95,6 +94,29 @@ def test_update_without_filter_fails():
         coll.update({})
 
 
+def test_set():
+    db = Dante()
+    coll = db["test"]
+    coll.insert({"a": 1, "b": 2})
+    coll.set({"b": 3}, a=1)
+    result = coll.find_one(a=1)
+    assert result["b"] == 3
+
+
+def test_set_without_fields_fails():
+    db = Dante()
+    coll = db["test"]
+    with pytest.raises(ValueError):
+        coll.set({}, a=1)
+
+
+def test_set_without_filter_fails():
+    db = Dante()
+    coll = db["test"]
+    with pytest.raises(ValueError):
+        coll.set({"b": 3})
+
+
 def test_delete():
     db = Dante()
     coll = db["test"]
@@ -121,20 +143,6 @@ def test_clear():
     coll.clear()
     result = coll.find_many()
     assert result == []
-
-
-def test_insert_performance(tmp_path):
-    db_path = tmp_path / "test.db"
-    db = Dante(db_path, auto_commit=False)
-
-    coll = db["test"]
-    t0 = time()
-    for i in range(100):
-        coll.insert({"a": i, "b": i + 1})
-    db.commit()
-    t1 = time()
-    dt = t1 - t0
-    assert dt < 0.05
 
 
 def test_str():

@@ -189,6 +189,24 @@ class BaseCollection(ABC):
 
         return query, values
 
+    def _build_set_clause(_self, **kwargs: Any) -> tuple[str, list]:
+        """
+        Internal method to create an SQL SET clause.
+
+        Builds the SET clause from key/value pairs.
+
+        :param kwargs: key/value pairs to set
+        :return: fragments of query to prepare, with corresponding values
+        """
+        clause_parts = []
+        values = []
+        for key, value in kwargs.items():
+            clause_parts.append("?, ?")
+            values.extend(["$." + key, value])
+        clause = "SET data = json_set(data, " + ", ".join(clause_parts) + ")"
+
+        return clause, values
+
     @abstractmethod
     def insert(self, data: dict | BaseModel):
         """
@@ -225,29 +243,30 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def update(
-        _self,
-        _data: dict | BaseModel,
-        _limit: int | None = None,
-        /,
-        **kwargs: Any,
-    ):
+    def update(_self, _data: dict | BaseModel, /, **kwargs: Any):
         """
         Update documents matching the query.
 
         Note that the data must be a full object, not just the fields to update.
 
         :param _data: Data to update with (must be a full object)
-        :param _limit: Maximum number of documents to update (default is no limit)
         :param kwargs: Fields to match in the documents
         """
 
     @abstractmethod
-    def delete(_self, _limit: int | None = None, /, **kwargs: Any):
+    def delete(_self, /, **kwargs: Any):
         """
         Delete documents matching the query.
 
-        :param _limit: Maximum number of documents to delete (default is no limit)
+        :param kwargs: Fields to match in the documents
+        """
+
+    @abstractmethod
+    def set(_self, _fields: dict[str, Any], **kwargs: Any):
+        """
+        Update specific fields in documents matching the query.
+
+        :param _fields: Fields to update
         :param kwargs: Fields to match in the documents
         """
 

@@ -105,6 +105,29 @@ async def test_update_without_filter_fails(db):
 
 
 @pytest.mark.asyncio
+async def test_set(db):
+    coll = await db["test"]
+    await coll.insert({"a": 1, "b": 2})
+    await coll.set({"b": 3}, a=1)
+    result = await coll.find_one(a=1)
+    assert result["b"] == 3
+
+
+@pytest.mark.asyncio
+async def test_set_without_fields_fails(db):
+    coll = await db["test"]
+    with pytest.raises(ValueError):
+        await coll.set({}, a=1)
+
+
+@pytest.mark.asyncio
+async def test_set_without_filter_fails(db):
+    coll = await db["test"]
+    with pytest.raises(ValueError):
+        await coll.set({"a": 1})
+
+
+@pytest.mark.asyncio
 async def test_delete(db):
     coll = await db["test"]
 

@@ -30,7 +30,7 @@ class Dante(BaseDante):
 
     async def _maybe_commit(self):
         if self.auto_commit and self.conn:
-            await self.conn.commit()
+            await self.commit()
 
     async def close(self):
         if self.conn:
@@ -50,7 +50,7 @@ class Collection(BaseCollection):
     :param model: Pydantic model class (if using with Pydantic)
     """
 
-    async def insert(self, data: dict | BaseModel):
+    async def insert(self, data: dict[str, Any] | BaseModel):
         conn: aiosqlite.Connection = await self.db.get_connection()
         await conn.execute(
             f"INSERT INTO {self.name} (data) VALUES (?)", (self._to_json(data),)
@@ -62,7 +62,7 @@ class Collection(BaseCollection):
         _limit: int | None = None,
         /,
         **kwargs: Any,
-    ) -> list[dict | BaseModel]:
+    ) -> list[dict[str, Any] | BaseModel]:
         query, values = _self._build_query(_limit, **kwargs)
 
         conn: aiosqlite.Connection = await _self.db.get_connection()
@@ -76,17 +76,11 @@ class Collection(BaseCollection):
         results = await _self.find_many(1, **kwargs)
         return results[0] if len(results) > 0 else None
 
-    async def update(
-        _self,
-        _data: dict | BaseModel,
-        _limit: int | None = None,
-        /,
-        **kwargs: Any,
-    ):
+    async def update(_self, _data: dict[str, Any] | BaseModel, /, **kwargs: Any):
         if not kwargs:
             raise ValueError("You must provide a filter to update")
 
-        query, values = _self._build_query(_limit, **kwargs)
+        query, values = _self._build_query(None, **kwargs)
 
         conn: aiosqlite.Connection = await _self.db.get_connection()
         await conn.execute(
@@ -95,11 +89,28 @@ class Collection(BaseCollection):
         )
         await _self.db._maybe_commit()
 
-    async def delete(_self, _limit: int | None = None, /, **kwargs: Any):
+    async def set(_self, _fields: dict[str, Any], **kwargs: Any):
+        if not _fields:
+            raise ValueError("You must provide fields to set")
+
+        if not kwargs:
+            raise ValueError("You must provide a filter to update")
+
+        set_clause, clause_values = _self._build_set_clause(**_fields)
+        query, query_values = _self._build_query(None, **kwargs)
+
+        conn: aiosqlite.Connection = await _self.db.get_connection()
+        await conn.execute(
+            f"UPDATE {_self.name} {set_clause} {query}",
+            *[clause_values + query_values],
+        )
+        await _self.db._maybe_commit()
+
+    async def delete(_self, /, **kwargs: Any):
         if not kwargs:
             raise ValueError("You must provide a filter to delete")
 
-        query, values = _self._build_query(_limit, **kwargs)
+        query, values = _self._build_query(None, **kwargs)
 
         conn: aiosqlite.Connection = await _self.db.get_connection()
         await conn.execute(f"DELETE FROM {_self.name}{query}", values)

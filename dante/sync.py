@@ -64,7 +64,7 @@ class Collection(BaseCollection):
     :param model: Pydantic model class (if using with Pydantic)
     """
 
-    def insert(self, data: dict | BaseModel):
+    def insert(self, data: dict[str, Any] | BaseModel):
         cursor = self.conn.cursor()
         cursor.execute(
             f"INSERT INTO {self.name} (data) VALUES (?)", (self._to_json(data),)
@@ -89,17 +89,11 @@ class Collection(BaseCollection):
         results = _self.find_many(1, **kwargs)
         return results[0] if len(results) > 0 else None
 
-    def update(
-        _self,
-        _data: dict | BaseModel,
-        _limit: int | None = None,
-        /,
-        **kwargs: Any,
-    ):
+    def update(_self, _data: dict[str, Any] | BaseModel, /, **kwargs: Any):
         if not kwargs:
             raise ValueError("You must provide a filter to update")
 
-        query, values = _self._build_query(_limit, **kwargs)
+        query, values = _self._build_query(None, **kwargs)
 
         cursor = _self.conn.cursor()
         cursor.execute(
@@ -108,11 +102,28 @@ class Collection(BaseCollection):
         )
         _self.db._maybe_commit()
 
-    def delete(_self, _limit: int | None = None, /, **kwargs: Any):
+    def set(_self, _fields: dict[str, Any], **kwargs: Any):
+        if not _fields:
+            raise ValueError("You must provide fields to set")
+
+        if not kwargs:
+            raise ValueError("You must provide a filter to update")
+
+        set_clause, clause_values = _self._build_set_clause(**_fields)
+        query, query_values = _self._build_query(None, **kwargs)
+
+        cursor = _self.conn.cursor()
+        cursor.execute(
+            f"UPDATE {_self.name} {set_clause} {query}",
+            *[clause_values + query_values],
+        )
+        _self.db._maybe_commit()
+
+    def delete(_self, /, **kwargs: Any):
         if not kwargs:
             raise ValueError("You must provide a filter to delete")
 
-        query, values = _self._build_query(_limit, **kwargs)
+        query, values = _self._build_query(None, **kwargs)
 
         cursor = _self.conn.cursor()
         cursor.execute(f"DELETE FROM {_self.name}{query}", values)
@@ -123,7 +134,7 @@ class Collection(BaseCollection):
         cursor.execute(f"DELETE FROM {self.name}")
         self.db._maybe_commit()
 
-    def __iter__(self) -> Iterable[dict | BaseModel]:
+    def __iter__(self) -> Iterable[dict[str, Any] | BaseModel]:
         """
         Iterate over the documents in the collection.
         """
