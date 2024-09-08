@@ -48,6 +48,16 @@ def test_insert_find_many():
     assert len(result) == 2
 
 
+def test_find_nested():
+    db = Dante()
+    coll = db["test"]
+
+    obj = {"a": {"b": {"c": 1}}}
+    coll.insert(obj)
+    result = coll.find_one(a__b__c=1)
+    assert obj == result
+
+
 def test_iteration():
     db = Dante()
     coll = db["test"]
@@ -101,6 +111,15 @@ def test_set():
     coll.set({"b": 3}, a=1)
     result = coll.find_one(a=1)
     assert result["b"] == 3
+
+
+def test_set_nested():
+    db = Dante()
+    coll = db["test"]
+    coll.insert({"a": {"b": 2}})
+    coll.set({"a__b": 3}, a__b=2)
+    result = coll.find_one(a__b=3)
+    assert result["a"]["b"] == 3
 
 
 def test_set_without_fields_fails():

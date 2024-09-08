@@ -82,7 +82,7 @@ result.name = "Virgil"
 collection.update(result, name="Dante")
 ```
 
-## Aync Dante
+## Async Dante
 
 Dante supports async usage with the identical API, both for plain Python
 objects and Pydantic models ([example](examples/hello-async.py)):
@@ -109,13 +109,14 @@ async def main():
 run(main())
 ```
 
-## Tests
+## Examples
 
-Run the tests with `pytest`:
+Check out the command-line [ToDo app](examples/todo.py) and the other examples in the [examples](examples/) directory.
 
-```shell
-pytest
-```
+## Development
+
+Detailed guide on how to develop, test and publish Dante is available in the [Developer documentation](docs/development.md).
+
 
 ## License (MIT)
 
