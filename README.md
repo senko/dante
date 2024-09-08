@@ -22,7 +22,7 @@ another database or ORM engine.
     pip install dante-db
     ```
 
-2. Use it with Python dictionaries:
+2. Use it with Python dictionaries ([example](examples/hello.py)):
 
     ```python
     from dante import Dante
@@ -54,7 +54,7 @@ in a table (one per collection) in the SQLite database.
 Dante works great with Pydantic.
 
 Using the same API as with the plain Python objects, you can insert,
-query and delete Pydantic models:
+query and delete Pydantic models ([example](examples/hello-pydantic.py)):
 
 ```python
 from dante import Dante
@@ -85,7 +85,7 @@ collection.update(result, name="Dante")
 ## Aync Dante
 
 Dante supports async usage with the identical API, both for plain Python
-objects and Pydantic models:
+objects and Pydantic models ([example](examples/hello-async.py)):
 
 ```python
 from asyncio import run
