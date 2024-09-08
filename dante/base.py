@@ -177,7 +177,7 @@ class BaseCollection(ABC):
         if kwargs:
             query_parts = []
             for key, value in kwargs.items():
-                key = key.replace("__", ".")
+                key = "$." + key.replace("__", ".")
                 query_parts.append("data->>? = ?")
                 values.extend([key, value])
             query = " WHERE " + " AND ".join(query_parts)
