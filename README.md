@@ -14,6 +14,10 @@ Dante *does not* support SQL, relations, ACID, aggregation, replication and is
 emphatically not web-scale. If you need those features, you should choose
 another database or ORM engine.
 
+* [Quickstart](#quickstart)
+* [API Reference](docs/api.md)
+* [Examples](#examples)
+
 ## Quickstart
 
 1. Install via PyPI:
