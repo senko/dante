@@ -1,7 +1,7 @@
 [project]
 name = "dante-db"
-version = "0.0.1"
-description = "Simple database for Python"
+version = "0.0.2"
+description = "Dante, a document store for Python backed by SQLite"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
