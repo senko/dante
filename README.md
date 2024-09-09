@@ -1,6 +1,7 @@
 # Dante, a document store for Python backed by SQLite
 
 [![Build](https://github.com/senko/dante/actions/workflows/ci.yml/badge.svg)](https://github.com/senko/dante/actions/workflows/ci.yml)
+[![Coverage](https://coveralls.io/repos/github/senko/dante/badge.svg?branch=main)](https://coveralls.io/github/senko/dante?branch=main)
 [![PyPI](https://img.shields.io/pypi/v/dante-db)](https://pypi.org/project/dante-db/)
 
 Dante is zero-setup, easy to use document store (NoSQL database) for Python.
