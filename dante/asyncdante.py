@@ -11,7 +11,11 @@ from .base import BaseCollection, BaseDante
 class Dante(BaseDante):
     async def get_connection(self) -> aiosqlite.Connection:
         if not self.conn:
-            self.conn = await aiosqlite.connect(self.db_name)
+            self.conn = await aiosqlite.connect(
+                self.db_name,
+                check_same_thread=self.check_same_thread,
+            )
+
         return self.conn
 
     async def collection(

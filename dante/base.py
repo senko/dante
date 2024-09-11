@@ -35,20 +35,33 @@ class BaseDante(ABC):
 
     :param db_name: Name of the database, defaults to in-memory database
     :param auto_commit: Whether to automatically commit transactions, defaults to True
+    :param check_same_thread: Whether to check if the same thread is used, defaults to True
     """
 
     MEMORY = ":memory:"
 
-    def __init__(self, db_name: str = MEMORY, auto_commit: bool = True):
+    def __init__(
+        self,
+        db_name: str = MEMORY,
+        auto_commit: bool = True,
+        check_same_thread: bool = True,
+    ):
         """
         Initialize the Dante instance.
 
         :param db_name: Name of the database, defaults to in-memory database
         :param auto_commit: Whether to automatically commit transactions, defaults to True
+        :param check_same_thread: Whether to check if the same thread is used, defaults to True
+
+        SQLite by default forbids using the same database connection from multiple threads,
+        but in some cases (eg. FastAPI) it may be useful to allow this behavior. To allow
+        this, set `check_same_thread` to False.
+
         """
         self.db_name = db_name
         self.conn = None
         self.auto_commit = auto_commit
+        self.check_same_thread = check_same_thread
 
     def __str__(self) -> str:
         """

@@ -30,9 +30,11 @@ The main classes for sync usage. A Dante instance represents a database.
 
 ### Constructor
 
-`Dante(db_name: str, auto_commit: bool)` opens the database at the specified path, creating it if it doesn't already exist.
+`Dante(db_name: str, auto_commit: bool, check_same_thread: bool)` opens the database at the specified path, creating it if it doesn't already exist.
 
-If the `auto_commit` parameter is `True` (the default if you don't specify it), the database will automatically commit changes after each operation. Otherwise, you need to call `commit()` manually.
+If the `auto_commit` parameter is `True` (the default), the database will automatically commit changes after each operation. Otherwise, you need to call `commit()` manually.
+
+If the `check_same_thread` parameter is `True` (the default), the database will only be accessible from the thread that created it (see [SQLite docs](https://docs.python.org/3/library/sqlite3.html#sqlite3.connect) for more info). If you want to access the same database connection from multiple threads, set this parameter to `False`. This is useful for frameworks like FastAPI that run in multiple threads.
 
 If you omit the database name, Dante will create an in-memory database that will be lost when the program exits.
 

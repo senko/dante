@@ -29,7 +29,10 @@ class Dante(BaseDante):
 
     def get_connection(self) -> sqlite3.Connection:
         if not self.conn:
-            self.conn = sqlite3.connect(self.db_name)
+            self.conn = sqlite3.connect(
+                self.db_name,
+                check_same_thread=self.check_same_thread,
+            )
         return self.conn
 
     def collection(self, name: str, model: BaseModel | None = None) -> "Collection":
