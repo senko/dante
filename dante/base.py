@@ -245,7 +245,7 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def update(_self, _data: dict | BaseModel, /, **kwargs: Any):
+    def update(_self, _data: dict | BaseModel, /, **kwargs: Any) -> int:
         """
         Update documents matching the query.
 
@@ -253,27 +253,32 @@ class BaseCollection(ABC):
 
         :param _data: Data to update with (must be a full object)
         :param kwargs: Fields to match in the documents
+        :return: Number of documents updated
         """
 
     @abstractmethod
-    def delete(_self, /, **kwargs: Any):
+    def delete(_self, /, **kwargs: Any) -> int:
         """
         Delete documents matching the query.
 
         :param kwargs: Fields to match in the documents
+        :return: Number of documents deleted
         """
 
     @abstractmethod
-    def set(_self, _fields: dict[str, Any], **kwargs: Any):
+    def set(_self, _fields: dict[str, Any], **kwargs: Any) -> int:
         """
         Update specific fields in documents matching the query.
 
         :param _fields: Fields to update
         :param kwargs: Fields to match in the documents
+        :return: Number of documents updated
         """
 
     @abstractmethod
-    def clear(self):
+    def clear(self) -> int:
         """
         Delete all documents in the collection.
+
+        :return: Number of documents deleted
         """

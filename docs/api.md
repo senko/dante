@@ -191,6 +191,8 @@ Updates matching document(s) in the collection with the specified document.
 Note that this will overwrite the existing document(s) with the new data. To
 update only specific field(s), use the `set()` method instead.
 
+The function returns the number of documents updated.
+
 Sync with Python dict:
 
 ```python
@@ -226,6 +228,8 @@ Updates fields in matching document(s). This method is useful when you want to u
 update. Note that you can't use Pydantic models with this method, and you can't
 delete (remove) fields with this method. For that, use `update()` method instead.
 
+The function returns the number of documents updated.
+
 Sync:
 
 ```python
@@ -245,6 +249,8 @@ Note that multiple documents may be updated if the criteria match multiple docum
 
 Deletes matching document(s) from the collection.
 
+Returns the number of documents deleted.
+
 Sync:
 
 ```python
@@ -263,3 +269,5 @@ Note that multiple documents may be deleted if the criteria match multiple docum
 ### Clear
 
 Deletes all documents from the collection.
+
+Returns the number of documents deleted.

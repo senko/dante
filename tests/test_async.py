@@ -90,7 +90,8 @@ async def test_update(db):
     coll = await db["test"]
 
     await coll.insert({"a": 1, "b": 2})
-    await coll.update({"a": 1, "b": 3}, a=1)
+    n = await coll.update({"a": 1, "b": 3}, a=1)
+    assert n == 1
     result = await coll.find_one(a=1)
     assert result["b"] == 3
 
@@ -108,7 +109,8 @@ async def test_update_without_filter_fails(db):
 async def test_set(db):
     coll = await db["test"]
     await coll.insert({"a": 1, "b": 2})
-    await coll.set({"b": 3}, a=1)
+    n = await coll.set({"b": 3}, a=1)
+    assert n == 1
     result = await coll.find_one(a=1)
     assert result["b"] == 3
 
@@ -135,7 +137,8 @@ async def test_delete(db):
         coll.insert({"a": 1, "b": 2}),
         coll.insert({"a": 1, "b": 3}),
     )
-    await coll.delete(a=1)
+    n = await coll.delete(a=1)
+    assert n == 2
     result = await coll.find_many(a=1)
     assert result == []
 
@@ -153,6 +156,7 @@ async def test_clear(db):
     coll = await db["test"]
 
     await coll.insert({"a": 1, "b": 2})
-    await coll.clear()
+    n = await coll.clear()
+    assert n == 1
     result = await coll.find_many()
     assert result == []

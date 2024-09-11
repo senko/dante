@@ -92,7 +92,8 @@ def test_update():
     coll = db["test"]
 
     coll.insert({"a": 1, "b": 2})
-    coll.update({"a": 1, "b": 3}, a=1)
+    n = coll.update({"a": 1, "b": 3}, a=1)
+    assert n == 1
     result = coll.find_one(a=1)
     assert result["b"] == 3
 
@@ -108,7 +109,8 @@ def test_set():
     db = Dante()
     coll = db["test"]
     coll.insert({"a": 1, "b": 2})
-    coll.set({"b": 3}, a=1)
+    n = coll.set({"b": 3}, a=1)
+    assert n == 1
     result = coll.find_one(a=1)
     assert result["b"] == 3
 
@@ -142,7 +144,8 @@ def test_delete():
 
     coll.insert({"a": 1, "b": 2})
     coll.insert({"a": 1, "b": 3})
-    coll.delete(a=1)
+    n = coll.delete(a=1)
+    assert n == 2
     result = coll.find_many(a=1)
     assert result == []
 
@@ -159,7 +162,8 @@ def test_clear():
     coll = db["test"]
 
     coll.insert({"a": 1, "b": 2})
-    coll.clear()
+    n = coll.clear()
+    assert n == 1
     result = coll.find_many()
     assert result == []
 

@@ -76,20 +76,22 @@ class Collection(BaseCollection):
         results = await _self.find_many(1, **kwargs)
         return results[0] if len(results) > 0 else None
 
-    async def update(_self, _data: dict[str, Any] | BaseModel, /, **kwargs: Any):
+    async def update(_self, _data: dict[str, Any] | BaseModel, /, **kwargs: Any) -> int:
         if not kwargs:
             raise ValueError("You must provide a filter to update")
 
         query, values = _self._build_query(None, **kwargs)
 
         conn: aiosqlite.Connection = await _self.db.get_connection()
-        await conn.execute(
+        cursor = await conn.execute(
             f"UPDATE {_self.name} SET data = ?{query}",
             (_self._to_json(_data), *values),
         )
+        updated_rows = cursor.rowcount
         await _self.db._maybe_commit()
+        return updated_rows
 
-    async def set(_self, _fields: dict[str, Any], **kwargs: Any):
+    async def set(_self, _fields: dict[str, Any], **kwargs: Any) -> int:
         if not _fields:
             raise ValueError("You must provide fields to set")
 
@@ -100,26 +102,32 @@ class Collection(BaseCollection):
         query, query_values = _self._build_query(None, **kwargs)
 
         conn: aiosqlite.Connection = await _self.db.get_connection()
-        await conn.execute(
+        cursor = await conn.execute(
             f"UPDATE {_self.name} {set_clause} {query}",
             *[clause_values + query_values],
         )
+        updated_rows = cursor.rowcount
         await _self.db._maybe_commit()
+        return updated_rows
 
-    async def delete(_self, /, **kwargs: Any):
+    async def delete(_self, /, **kwargs: Any) -> int:
         if not kwargs:
             raise ValueError("You must provide a filter to delete")
 
         query, values = _self._build_query(None, **kwargs)
 
         conn: aiosqlite.Connection = await _self.db.get_connection()
-        await conn.execute(f"DELETE FROM {_self.name}{query}", values)
+        cursor = await conn.execute(f"DELETE FROM {_self.name}{query}", values)
+        deleted_rows = cursor.rowcount
         await _self.db._maybe_commit()
+        return deleted_rows
 
-    async def clear(self):
+    async def clear(self) -> int:
         conn: aiosqlite.Connection = await self.db.get_connection()
-        await conn.execute(f"DELETE FROM {self.name}")
+        cursor = await conn.execute(f"DELETE FROM {self.name}")
+        deleted_rows = cursor.rowcount
         await self.db._maybe_commit()
+        return deleted_rows
 
     async def __aiter__(self) -> AsyncGenerator[dict | BaseModel]:
         """

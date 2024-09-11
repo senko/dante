@@ -89,7 +89,7 @@ class Collection(BaseCollection):
         results = _self.find_many(1, **kwargs)
         return results[0] if len(results) > 0 else None
 
-    def update(_self, _data: dict[str, Any] | BaseModel, /, **kwargs: Any):
+    def update(_self, _data: dict[str, Any] | BaseModel, /, **kwargs: Any) -> int:
         if not kwargs:
             raise ValueError("You must provide a filter to update")
 
@@ -100,9 +100,11 @@ class Collection(BaseCollection):
             f"UPDATE {_self.name} SET data = ? {query}",
             (_self._to_json(_data), *values),
         )
+        updated_rows = cursor.rowcount
         _self.db._maybe_commit()
+        return updated_rows
 
-    def set(_self, _fields: dict[str, Any], **kwargs: Any):
+    def set(_self, _fields: dict[str, Any], **kwargs: Any) -> int:
         if not _fields:
             raise ValueError("You must provide fields to set")
 
@@ -117,9 +119,11 @@ class Collection(BaseCollection):
             f"UPDATE {_self.name} {set_clause} {query}",
             *[clause_values + query_values],
         )
+        updated_rows = cursor.rowcount
         _self.db._maybe_commit()
+        return updated_rows
 
-    def delete(_self, /, **kwargs: Any):
+    def delete(_self, /, **kwargs: Any) -> int:
         if not kwargs:
             raise ValueError("You must provide a filter to delete")
 
@@ -127,12 +131,16 @@ class Collection(BaseCollection):
 
         cursor = _self.conn.cursor()
         cursor.execute(f"DELETE FROM {_self.name}{query}", values)
+        deleted_rows = cursor.rowcount
         _self.db._maybe_commit()
+        return deleted_rows
 
-    def clear(self):
+    def clear(self) -> int:
         cursor = self.conn.cursor()
         cursor.execute(f"DELETE FROM {self.name}")
+        deleted_rows = cursor.rowcount
         self.db._maybe_commit()
+        return deleted_rows
 
     def __iter__(self) -> Iterable[dict[str, Any] | BaseModel]:
         """
