@@ -38,10 +38,18 @@ If the `check_same_thread` parameter is `True` (the default), the database will 
 
 If you omit the database name, Dante will create an in-memory database that will be lost when the program exits.
 
-Example:
+Sync example:
 
 ```python
 from dante import Dante
+
+db = Dante("mydatabase.db")
+```
+
+Async example:
+
+```python
+from dante import AsyncDante as Dante
 
 db = Dante("mydatabase.db")
 ```
