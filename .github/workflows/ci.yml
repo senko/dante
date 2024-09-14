@@ -57,3 +57,6 @@ jobs:
 
     - name: Coveralls
       uses: coverallsapp/github-action@v2
+
+    - name: Check types
+      run: uv run mypy dante

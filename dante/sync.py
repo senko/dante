@@ -3,9 +3,8 @@ from __future__ import annotations
 import sqlite3
 from typing import Any, Iterable
 
-from pydantic import BaseModel
 
-from .base import BaseCollection, BaseDante
+from .base import BaseCollection, BaseDante, TModel
 
 
 class Dante(BaseDante):
@@ -35,7 +34,7 @@ class Dante(BaseDante):
             )
         return self.conn
 
-    def collection(self, name: str, model: BaseModel | None = None) -> "Collection":
+    def collection(self, name: str, model: TModel | None = None) -> Collection:
         conn = self.get_connection()
         conn.execute(f"CREATE TABLE IF NOT EXISTS {name} (data TEXT)")
         conn.commit()
@@ -67,7 +66,11 @@ class Collection(BaseCollection):
     :param model: Pydantic model class (if using with Pydantic)
     """
 
-    def insert(self, data: dict[str, Any] | BaseModel):
+    @property
+    def conn(self) -> sqlite3.Connection:
+        return self.db.get_connection()
+
+    def insert(self, data: dict[str, Any] | TModel):
         cursor = self.conn.cursor()
         cursor.execute(
             f"INSERT INTO {self.name} (data) VALUES (?)", (self._to_json(data),)
@@ -79,20 +82,19 @@ class Collection(BaseCollection):
         _limit: int | None = None,
         /,
         **kwargs: Any,
-    ) -> list[dict | BaseModel]:
+    ) -> list[dict | TModel]:
         query, values = _self._build_query(_limit, **kwargs)
 
-        cursor = _self.conn.cursor()
-        cursor.execute(f"SELECT data FROM {_self.name}{query}", values)
+        cursor = _self.conn.execute(f"SELECT data FROM {_self.name}{query}", values)
         rows = cursor.fetchall()
 
         return [_self._from_json(row[0]) for row in rows]
 
-    def find_one(_self, **kwargs: Any) -> dict | BaseModel | None:
+    def find_one(_self, **kwargs: Any) -> dict | TModel | None:
         results = _self.find_many(1, **kwargs)
         return results[0] if len(results) > 0 else None
 
-    def update(_self, _data: dict[str, Any] | BaseModel, /, **kwargs: Any) -> int:
+    def update(_self, _data: dict[str, Any] | TModel, /, **kwargs: Any) -> int:
         if not kwargs:
             raise ValueError("You must provide a filter to update")
 
@@ -117,8 +119,7 @@ class Collection(BaseCollection):
         set_clause, clause_values = _self._build_set_clause(**_fields)
         query, query_values = _self._build_query(None, **kwargs)
 
-        cursor = _self.conn.cursor()
-        cursor.execute(
+        cursor = _self.conn.execute(
             f"UPDATE {_self.name} {set_clause} {query}",
             *[clause_values + query_values],
         )
@@ -132,20 +133,18 @@ class Collection(BaseCollection):
 
         query, values = _self._build_query(None, **kwargs)
 
-        cursor = _self.conn.cursor()
-        cursor.execute(f"DELETE FROM {_self.name}{query}", values)
+        cursor = _self.conn.execute(f"DELETE FROM {_self.name}{query}", values)
         deleted_rows = cursor.rowcount
         _self.db._maybe_commit()
         return deleted_rows
 
     def clear(self) -> int:
-        cursor = self.conn.cursor()
-        cursor.execute(f"DELETE FROM {self.name}")
+        cursor = self.conn.execute(f"DELETE FROM {self.name}")
         deleted_rows = cursor.rowcount
         self.db._maybe_commit()
         return deleted_rows
 
-    def __iter__(self) -> Iterable[dict[str, Any] | BaseModel]:
+    def __iter__(self) -> Iterable[dict[str, Any] | TModel]:
         """
         Iterate over the documents in the collection.
         """

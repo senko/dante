@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 from abc import ABC, abstractmethod
 from datetime import date, datetime
-from typing import Any
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
+
+TModel = TypeVar("TModel", bound=BaseModel)
 
 
 class DanteEncoder(json.JSONEncoder):
@@ -59,7 +61,7 @@ class BaseDante(ABC):
 
         """
         self.db_name = db_name
-        self.conn = None
+        self.conn: Any | None = None
         self.auto_commit = auto_commit
         self.check_same_thread = check_same_thread
 
@@ -80,7 +82,7 @@ class BaseDante(ABC):
         """
 
     @abstractmethod
-    def collection(self, name: str, model: type | None = None) -> "BaseCollection":
+    def collection(self, name: str, model: TModel | None = None):
         """
         Get a collection from the database.
 
@@ -90,17 +92,27 @@ class BaseDante(ABC):
         :return: Collection instance
         """
 
-    def __getitem__(self, name: str | type) -> "BaseCollection":
+    def __getitem__(self, name: str | TModel):
         """
         Get a collection using dictionary-like syntax.
 
         :param name: Name of the collection or a Pydantic model class
         :return: Collection instance
         """
-        if isinstance(name, type) and issubclass(name, BaseModel):
+        if isinstance(name, str):
+            return self.collection(name)
+        elif isinstance(name, type) and issubclass(name, BaseModel):
             return self.collection(name.__name__, name)
         else:
-            return self.collection(name)
+            raise TypeError(
+                "Key must be string or Pydantic model class"
+            )  # pragma: no cover
+
+    @abstractmethod
+    def _maybe_commit(self):
+        """
+        Commit the current transaction if auto-commit is enabled.
+        """
 
     @abstractmethod
     def commit(self):
@@ -132,7 +144,7 @@ class BaseCollection(ABC):
     :param model: Optional Pydantic model class for data validation and serialization
     """
 
-    def __init__(self, name: str, db: BaseDante, model: BaseModel | None = None):
+    def __init__(self, name: str, db: BaseDante, model: TModel | None = None):
         """
         Initialize the BaseCollection instance.
 
@@ -142,7 +154,6 @@ class BaseCollection(ABC):
         """
         self.name = name
         self.db = db
-        self.conn = db.conn
         self.model = model
 
     def __str__(self) -> str:
@@ -153,7 +164,7 @@ class BaseCollection(ABC):
         """
         return f'<{self.__class__.__name__}("{self.db.db_name}/{self.name}")>'
 
-    def _to_json(self, data: dict | BaseModel) -> str:
+    def _to_json(self, data: dict | TModel) -> str:
         """
         Internal method to serialize data to JSON before saving.
 
@@ -165,7 +176,7 @@ class BaseCollection(ABC):
         else:
             return json.dumps(data, cls=DanteEncoder)
 
-    def _from_json(self, json_text: str) -> dict | BaseModel:
+    def _from_json(self, json_text: str) -> dict | TModel:
         """
         Internal method to parse JSON data after loading.
 
@@ -173,7 +184,7 @@ class BaseCollection(ABC):
         :return: Deserialized data as dictionary or Pydantic model
         """
         data = json.loads(json_text)
-        return self.model(**data) if self.model else data
+        return self.model(**data) if self.model and callable(self.model) else data
 
     def _build_query(_self, _limit: int | None, /, **kwargs: Any) -> tuple[str, list]:
         """
@@ -223,7 +234,7 @@ class BaseCollection(ABC):
         return clause, values
 
     @abstractmethod
-    def insert(self, data: dict | BaseModel):
+    def insert(self, data: dict | TModel):
         """
         Insert data into the collection.
 
@@ -236,7 +247,7 @@ class BaseCollection(ABC):
         _limit: int | None = None,
         /,
         **kwargs: Any,
-    ) -> list[dict | BaseModel]:
+    ):
         """
         Find documents matching the query.
 
@@ -246,7 +257,7 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def find_one(_self, **kwargs: Any) -> dict | BaseModel | None:
+    def find_one(_self, **kwargs: Any):
         """
         Find a single document matching the query.
 
@@ -258,7 +269,7 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def update(_self, _data: dict | BaseModel, /, **kwargs: Any) -> int:
+    def update(_self, _data: dict | TModel, /, **kwargs: Any):
         """
         Update documents matching the query.
 
@@ -270,7 +281,7 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def delete(_self, /, **kwargs: Any) -> int:
+    def delete(_self, /, **kwargs: Any):
         """
         Delete documents matching the query.
 
@@ -279,7 +290,7 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def set(_self, _fields: dict[str, Any], **kwargs: Any) -> int:
+    def set(_self, _fields: dict[str, Any], **kwargs: Any):
         """
         Update specific fields in documents matching the query.
 
@@ -289,7 +300,7 @@ class BaseCollection(ABC):
         """
 
     @abstractmethod
-    def clear(self) -> int:
+    def clear(self):
         """
         Delete all documents in the collection.
 

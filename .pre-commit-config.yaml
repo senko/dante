@@ -18,3 +18,13 @@ repos:
         entry: pytest
         language: system
         pass_filenames: false
+  - repo: local
+    hooks:
+      # Run type checks
+      - id: mypy
+        name: mypy
+        stages: [commit]
+        types: [python]
+        entry: mypy dante
+        language: system
+        pass_filenames: false
