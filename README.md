@@ -116,11 +116,14 @@ run(main())
 
 ## Examples
 
-Check out the command-line [ToDo app](examples/todo.py) and the other examples in the [examples](examples/) directory.
+Check out the command-line [ToDo app](examples/todo.py),
+a simple [FastAPI CRUD app](examples/fastapi-example.py),
+and the other examples in the [examples](examples/) directory.
 
 ## Development
 
-Detailed guide on how to develop, test and publish Dante is available in the [Developer documentation](docs/development.md).
+Detailed guide on how to develop, test and publish Dante is available in the
+[Developer documentation](docs/development.md).
 
 
 ## License (MIT)
